@@ -254,6 +254,9 @@ def distributed_init(cfg: FairseqConfig):
                     cfg.distributed_training.distributed_init_method,
                 )
             )
+            if cfg.distributed_training.distributed_backend == 'smddp':
+                import smdistributed.dataparallel.torch.torch_smddp
+            print('USING BACKEND: ', cfg.distributed_training.distributed_backend)
             dist.init_process_group(
                 backend=cfg.distributed_training.distributed_backend,
                 init_method=cfg.distributed_training.distributed_init_method,
@@ -423,7 +426,7 @@ def get_global_group():
         if not hasattr(get_global_group, "_global_group"):
             # ideally we could use torch.distributed.group.WORLD, but it seems
             # to cause random NCCL hangs in some cases
-            get_global_group._global_group = dist.new_group()
+            get_global_group._global_group = torch.distributed.group.WORLD #dist.new_group()
         return get_global_group._global_group
     else:
         return None
